@@ -148,6 +148,12 @@ h3 {
   border-radius: 6px;
 }
 
+.filter-buttons a.detailsBtn,
+.submission-box a.detailsBtn {
+  display: inline-block;
+  text-decoration: none;
+}
+
 .submission-box h3 {
   margin-top: 0;
   margin-bottom: 10px;
