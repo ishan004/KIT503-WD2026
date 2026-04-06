@@ -42,15 +42,16 @@ unset($_SESSION['flash_message']);
 </head>
 <body>
 <nav class="navbar">
-    <div class="container">
-        <a class="brand" href="index.php">Conference Management System</a>
-        <div class="nav-buttons">
-            <a href="index.php" class="btn-outline nav-link">Home</a>
-            <a href="submissions.php" class="btn-outline nav-link">Submissions</a>
-            <a href="create_submissions.php" class="btn-outline nav-link active">Submit Paper</a>
+        <div class="container">
+            <a class="brand" href="index.php">Conference Management System</a>
+
+            <div class="nav-buttons">
+                <a class="btn btn-outline nav-link" href="registration.php">Registration</a>
+                <a class="btn btn-outline nav-link" href="submissions.php">Submissions</a>
+                <a class="btn btn-outline nav-link" href="conference_details.php">Conference Details</a>
+            </div>
         </div>
-    </div>
-</nav>
+    </nav>
 
 <main class="content-area">
     <div class="wrapper">

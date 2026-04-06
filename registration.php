@@ -36,16 +36,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <body>
 
 <nav class="navbar">
-    <div class="container">
-        <a class="brand" href="index.php">Conference Management System</a>
+        <div class="container">
+            <a class="brand" href="index.php">Conference Management System</a>
 
-        <div class="nav-buttons">
-            <a class="btn btn-outline nav-link active" href="registration.php">Registration</a>
-            <a class="btn btn-outline nav-link" href="submissions.php">Submissions</a>
-            <a class="btn btn-outline nav-link" href="create_submissions.php">Submit Paper</a>
+            <div class="nav-buttons">
+                <a class="btn btn-outline nav-link" href="registration.php">Registration</a>
+                <a class="btn btn-outline nav-link" href="submissions.php">Submissions</a>
+                <a class="btn btn-outline nav-link" href="conference_details.php">Conference Details</a>
+            </div>
         </div>
-    </div>
-</nav>
+    </nav>
 
 <div class="content-area">
     <div class="wrapper">

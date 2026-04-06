@@ -21,7 +21,7 @@
             <a class="brand" href="index.php">Conference Management System</a>
 
             <div class="nav-buttons">
-                <a class="btn btn-outline nav-link" href="registration.html">Registration</a>
+                <a class="btn btn-outline nav-link" href="registration.php">Registration</a>
                 <a class="btn btn-outline nav-link" href="submissions.php">Submissions</a>
                 <a class="btn btn-outline nav-link" href="conference_details.php">Conference Details</a>
             </div>
