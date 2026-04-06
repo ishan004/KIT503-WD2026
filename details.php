@@ -1,4 +1,5 @@
 <?php
+session_start();
 include('db_conn.php');
 
 if (!isset($_GET['id'])) {
@@ -42,7 +43,8 @@ $reviewStmt->bindParam(':id', $id, PDO::PARAM_INT);
 $reviewStmt->execute();
 $reviews = $reviewStmt->fetchAll(PDO::FETCH_ASSOC);
 
-$showAbstract = isset($_GET['show']) && $_GET['show'] === 'abstract';
+$flash = $_SESSION['flash_message'] ?? null;
+unset($_SESSION['flash_message']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -51,55 +53,81 @@ $showAbstract = isset($_GET['show']) && $_GET['show'] === 'abstract';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Paper Details</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-<div class="container mt-4">
-    <h1>Paper Details</h1>
-    <a href="submissions.php" class="btn btn-secondary mb-3">Back</a>
+<nav class="navbar">
+  <div class="container">
+    <a class="brand" href="index.php">Conference Management System</a>
+    <div class="nav-buttons">
+      <a href="index.php" class="btn-outline nav-link">Home</a>
+      <a href="submissions.php" class="btn-outline nav-link">Submissions</a>
+      <a href="create_submissions.php" class="btn-outline nav-link">Submit Paper</a>
+    </div>
+  </div>
+</nav>
 
-    <div class="card p-3 mb-3">
+<div class="content-area">
+  <div class="wrapper">
+    <div class="details-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
+        <h2>Paper Details</h2>
+        <a href="submissions.php" class="secondary-btn">Back</a>
+      </div>
+
+      <?php if ($flash): ?>
+        <div class="alert-box alert-success">
+          <?php echo htmlspecialchars($flash); ?>
+        </div>
+      <?php endif; ?>
+
+      <div class="detail-card">
         <h3><?php echo htmlspecialchars($submission['title']); ?></h3>
         <p><strong>Author:</strong> <?php echo htmlspecialchars($submission['author_name']); ?></p>
         <p><strong>Email:</strong> <?php echo htmlspecialchars($submission['author_email']); ?></p>
         <p><strong>Affiliation:</strong> <?php echo htmlspecialchars($submission['affiliation']); ?></p>
         <p><strong>Type:</strong> <?php echo htmlspecialchars($submission['paper_type']); ?></p>
 
-        <a href="details.php?id=<?php echo $submission['id']; ?>&show=abstract" class="btn btn-info btn-sm mb-3">
-            View abstract
-        </a>
+        <button id="toggleAbstractBtn" class="detailsBtn" type="button">View Abstract</button>
 
-        <?php if ($showAbstract): ?>
-            <div class="alert alert-light border">
-                <strong>Abstract:</strong><br>
-                <?php echo nl2br(htmlspecialchars($submission['abstract'])); ?>
-            </div>
-        <?php endif; ?>
+        <div id="abstractBox" class="abstract-box hidden">
+          <strong>Abstract:</strong><br>
+          <?php echo nl2br(htmlspecialchars($submission['abstract'])); ?>
+        </div>
 
-        <h4>Reviews</h4>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Reviewer</th>
-                    <th>Score</th>
-                </tr>
-            </thead>
-            <tbody>
+        <h3 style="margin-top:24px;">Reviews</h3>
+        <table class="submission-table review-table">
+          <thead>
+            <tr>
+              <th>Reviewer</th>
+              <th>Score</th>
+            </tr>
+          </thead>
+          <tbody>
             <?php if (count($reviews) > 0): ?>
-                <?php foreach ($reviews as $review): ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($review['reviewer_name']); ?></td>
-                        <td><?php echo htmlspecialchars($review['results']); ?></td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php else: ?>
+              <?php foreach ($reviews as $review): ?>
                 <tr>
-                    <td colspan="2">No reviews available.</td>
+                  <td><?php echo htmlspecialchars($review['reviewer_name']); ?></td>
+                  <td><?php echo htmlspecialchars($review['results']); ?></td>
                 </tr>
+              <?php endforeach; ?>
+            <?php else: ?>
+              <tr>
+                <td colspan="2">No reviews available.</td>
+              </tr>
             <?php endif; ?>
-            </tbody>
+          </tbody>
         </table>
+      </div>
     </div>
+  </div>
 </div>
+
+<footer>
+  <div class="container footer-row">
+    <p>&copy; 2026 Conference Management System</p>
+  </div>
+</footer>
+
+<script src="script.js"></script>
 </body>
 </html>

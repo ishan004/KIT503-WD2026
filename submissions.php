@@ -1,8 +1,9 @@
 <?php
+session_start();
 include('db_conn.php');
 
-$search = $_GET['search'] ?? '';
-$type = $_GET['type'] ?? 'all';
+$search = trim($_GET['search'] ?? '');
+$type = trim($_GET['type'] ?? 'all');
 
 $sql = "
     SELECT 
@@ -25,7 +26,7 @@ if ($type !== 'all') {
     $params[':type'] = $type;
 }
 
-if (!empty($search)) {
+if ($search !== '') {
     $sql .= " AND (s.title LIKE :search OR u.Name LIKE :search)";
     $params[':search'] = "%$search%";
 }
@@ -35,13 +36,16 @@ $sql .= " ORDER BY s.id ASC";
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $submissions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$flash = $_SESSION['flash_message'] ?? null;
+unset($_SESSION['flash_message']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Submission List</title>
+  <title>Paper Submissions</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -50,8 +54,9 @@ $submissions = $stmt->fetchAll(PDO::FETCH_ASSOC);
       <a class="brand" href="index.html">Conference Management System</a>
       <div class="nav-buttons">
         <a href="registration.html" class="btn-outline nav-link">Registration</a>
-        <a href="submissions.php" class="btn-outline nav-link active">Submissions</a>
-        <a href="details.php" class="btn-outline nav-link">Details</a>
+        <a href="submissions.php" class="btn-outline nav-link">Submissions</a>
+        <a href="details.html" class="btn-outline nav-link">Details</a>
+        <!-- <a href="create_submissions.php" class="btn-outline nav-link">Submit Paper</a> -->
       </div>
     </div>
   </nav>
@@ -59,7 +64,16 @@ $submissions = $stmt->fetchAll(PDO::FETCH_ASSOC);
   <main class="content-area">
     <div class="wrapper">
       <div class="details-box">
-        <h2>Paper Submissions</h2>
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
+          <h2>Paper Submissions</h2>
+          <a href="create_submissions.php" class="success-btn">Add Submission</a>
+        </div>
+
+        <?php if ($flash): ?>
+          <div class="alert-box alert-success">
+            <?php echo htmlspecialchars($flash); ?>
+          </div>
+        <?php endif; ?>
 
         <form method="get" class="filter-box">
           <div>
@@ -86,74 +100,57 @@ $submissions = $stmt->fetchAll(PDO::FETCH_ASSOC);
           </div>
 
           <div class="filter-buttons">
-            <button type="submit">Search</button>
-            <a href="submissions.php" class="detailsBtn" style="text-decoration:none;">Clear</a>
+            <button type="submit" class="secondary-btn">Search</button>
+            <a href="submissions.php" class="detailsBtn">Clear</a>
           </div>
         </form>
 
-        <div id="submissionList">
-          <?php if (count($submissions) > 0): ?>
-            <?php foreach ($submissions as $row): ?>
-              <div class="submission-box">
-                <h3><?php echo htmlspecialchars($row['title']); ?></h3>
-                <p><strong>Author:</strong> <?php echo htmlspecialchars($row['author_name']); ?></p>
-                <p><strong>Type:</strong> <?php echo htmlspecialchars($row['paper_type']); ?></p>
+        <div class="table-wrap">
+          <table class="submission-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Type</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php if (count($submissions) > 0): ?>
+                <?php foreach ($submissions as $row): ?>
+                  <tr>
+                    <td><?php echo htmlspecialchars($row['title']); ?></td>
+                    <td><?php echo htmlspecialchars($row['author_name']); ?></td>
+                    <td><?php echo htmlspecialchars($row['paper_type']); ?></td>
+                    <td class="actions-cell">
+                      <a href="details.php?id=<?php echo $row['id']; ?>" class="detailsBtn">View Details</a>
+                      <a href="update_submission.php?id=<?php echo $row['id']; ?>" class="warning-btn">Edit</a>
 
-                <button class="detailsBtn" onclick="toggleDetails('details-<?php echo $row['id']; ?>')">
-                  View Details
-                </button>
-
-                <a href="update_submission.php?id=<?php echo $row['id']; ?>" class="detailsBtn" style="text-decoration:none;">
-                  Edit
-                </a>
-
-                <a
-                  href="engine.php?delete_id=<?php echo $row['id']; ?>"
-                  class="detailsBtn"
-                  style="text-decoration:none;"
-                  onclick="return confirm('Are you sure you want to delete this submission?');"
-                >
-                  Delete
-                </a>
-
-                <div class="more-info" id="details-<?php echo $row['id']; ?>">
-                  <p><strong>Title:</strong> <?php echo htmlspecialchars($row['title']); ?></p>
-                  <p><strong>Author:</strong> <?php echo htmlspecialchars($row['author_name']); ?></p>
-                  <p><strong>Email:</strong> <?php echo htmlspecialchars($row['author_email']); ?></p>
-                  <p><strong>Affiliation:</strong> <?php echo htmlspecialchars($row['affiliation']); ?></p>
-                  <p><strong>Type:</strong> <?php echo htmlspecialchars($row['paper_type']); ?></p>
-                  <p><strong>Abstract:</strong> <?php echo htmlspecialchars($row['abstract']); ?></p>
-                  <p>
-                    <a href="details.php?id=<?php echo $row['id']; ?>" class="detailsBtn" style="text-decoration:none;">
-                      Open Full Details
-                    </a>
-                  </p>
-                </div>
-              </div>
-            <?php endforeach; ?>
-          <?php else: ?>
-            <p id="noResults" style="display:block;">No matching submissions found.</p>
-          <?php endif; ?>
+                      <form action="engine.php" method="post" class="delete-form" style="display:inline;">
+                        <input type="hidden" name="delete_id" value="<?php echo $row['id']; ?>">
+                        <button type="submit" name="delete_submission" class="danger-btn">Delete</button>
+                      </form>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
+              <?php else: ?>
+                <tr>
+                  <td colspan="4">No matching submissions found.</td>
+                </tr>
+              <?php endif; ?>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
   </main>
 
   <footer>
-    <div class="container">
+    <div class="container footer-row">
       <p>&copy; 2026 Conference Management System</p>
     </div>
   </footer>
 
-  <script>
-    function toggleDetails(id) {
-      const details = document.getElementById(id);
-      if (details.style.display === "block") {
-        details.style.display = "none";
-      } else {
-        details.style.display = "block";
-      }
-    }
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>

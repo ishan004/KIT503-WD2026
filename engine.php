@@ -1,68 +1,93 @@
 <?php
+session_start();
 include('db_conn.php');
+
+function redirect_with_message(string $location, string $message): void {
+    $_SESSION['flash_message'] = $message;
+    header("Location: $location");
+    exit;
+}
 
 /* CREATE */
 if (isset($_POST['create_submission'])) {
-    $name = trim($_POST['name']);
-    $email = trim($_POST['email']);
-    $affiliation = trim($_POST['affiliation']);
-    $paper_type = trim($_POST['paper_type']);
-    $title = trim($_POST['title']);
-    $abstract = trim($_POST['abstract']);
+    $name = trim($_POST['name'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $affiliation = trim($_POST['affiliation'] ?? '');
+    $paper_type = trim($_POST['paper_type'] ?? '');
+    $title = trim($_POST['title'] ?? '');
+    $abstract = trim($_POST['abstract'] ?? '');
 
-    $stmt = $pdo->prepare("SELECT * FROM Users WHERE Email = :email");
-    $stmt->bindParam(':email', $email);
-    $stmt->execute();
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($name === '' || $email === '' || $affiliation === '' || $paper_type === '' || $title === '' || $abstract === '') {
+        redirect_with_message('create_submissions.php', 'Please complete all fields.');
+    }
 
-    if (!$user) {
-        $insertUser = $pdo->prepare("
-            INSERT INTO Users (Name, Email, affiliation, Role)
-            VALUES (:name, :email, :affiliation, 'Author')
-        ");
-        $insertUser->bindParam(':name', $name);
-        $insertUser->bindParam(':email', $email);
-        $insertUser->bindParam(':affiliation', $affiliation);
-        $insertUser->execute();
+    try {
+        $pdo->beginTransaction();
 
-        $user_id = $pdo->lastInsertId();
-    } else {
-        $user_id = $user['id'];
+        $stmt = $pdo->prepare("SELECT * FROM Users WHERE Email = :email");
+        $stmt->execute([':email' => $email]);
+        $user = $stmt->fetch();
 
-        $checkSubmission = $pdo->prepare("SELECT * FROM Submissions WHERE User_id = :user_id");
-        $checkSubmission->bindParam(':user_id', $user_id, PDO::PARAM_INT);
-        $checkSubmission->execute();
-        $existingSubmission = $checkSubmission->fetch(PDO::FETCH_ASSOC);
+        if (!$user) {
+            $insertUser = $pdo->prepare("
+                INSERT INTO Users (Name, Email, affiliation, Role)
+                VALUES (:name, :email, :affiliation, 'Author')
+            ");
+            $insertUser->execute([
+                ':name' => $name,
+                ':email' => $email,
+                ':affiliation' => $affiliation
+            ]);
 
-        if ($existingSubmission) {
-            echo "<script>alert('This author has already submitted a paper.'); window.location='details.php?id=" . $existingSubmission['id'] . "';</script>";
-            exit;
+            $user_id = (int)$pdo->lastInsertId();
+        } else {
+            $user_id = (int)$user['id'];
+
+            $checkSubmission = $pdo->prepare("SELECT * FROM Submissions WHERE User_id = :user_id LIMIT 1");
+            $checkSubmission->execute([':user_id' => $user_id]);
+            $existingSubmission = $checkSubmission->fetch();
+
+            if ($existingSubmission) {
+                $pdo->rollBack();
+                redirect_with_message(
+                    'details.php?id=' . $existingSubmission['id'],
+                    'This author has already submitted a paper.'
+                );
+            }
         }
-    }
 
-    $insertSubmission = $pdo->prepare("
-        INSERT INTO Submissions (User_id, title, paper_type, accepted, abstract)
-        VALUES (:user_id, :title, :paper_type, 0, :abstract)
-    ");
-    $insertSubmission->bindParam(':user_id', $user_id, PDO::PARAM_INT);
-    $insertSubmission->bindParam(':title', $title);
-    $insertSubmission->bindParam(':paper_type', $paper_type);
-    $insertSubmission->bindParam(':abstract', $abstract);
+        $insertSubmission = $pdo->prepare("
+            INSERT INTO Submissions (User_id, title, paper_type, accepted, abstract)
+            VALUES (:user_id, :title, :paper_type, 0, :abstract)
+        ");
 
-    if ($insertSubmission->execute()) {
-        echo "<script>alert('Your paper has been added.'); window.location='submissions.php';</script>";
-    } else {
-        echo "<script>alert('Error adding paper.'); window.location='create_submission.php';</script>";
+        $insertSubmission->execute([
+            ':user_id' => $user_id,
+            ':title' => $title,
+            ':paper_type' => $paper_type,
+            ':abstract' => $abstract
+        ]);
+
+        $pdo->commit();
+        redirect_with_message('submissions.php', 'Your paper has been added.');
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        redirect_with_message('create_submissions.php', 'Error adding paper.');
     }
-    exit;
 }
 
 /* UPDATE */
 if (isset($_POST['finalise_update_submission'])) {
-    $submission_id = (int)$_POST['submission_id'];
-    $paper_type = trim($_POST['paper_type']);
-    $title = trim($_POST['title']);
-    $abstract = trim($_POST['abstract']);
+    $submission_id = (int)($_POST['submission_id'] ?? 0);
+    $paper_type = trim($_POST['paper_type'] ?? '');
+    $title = trim($_POST['title'] ?? '');
+    $abstract = trim($_POST['abstract'] ?? '');
+
+    if ($submission_id <= 0 || $paper_type === '' || $title === '' || $abstract === '') {
+        redirect_with_message('submissions.php', 'Invalid update request.');
+    }
 
     $updateStmt = $pdo->prepare("
         UPDATE Submissions
@@ -71,35 +96,46 @@ if (isset($_POST['finalise_update_submission'])) {
             abstract = :abstract
         WHERE id = :id
     ");
-    $updateStmt->bindParam(':paper_type', $paper_type);
-    $updateStmt->bindParam(':title', $title);
-    $updateStmt->bindParam(':abstract', $abstract);
-    $updateStmt->bindParam(':id', $submission_id, PDO::PARAM_INT);
 
-    if ($updateStmt->execute()) {
-        echo "<script>alert('Submission has been edited.'); window.location='submissions.php';</script>";
+    $ok = $updateStmt->execute([
+        ':paper_type' => $paper_type,
+        ':title' => $title,
+        ':abstract' => $abstract,
+        ':id' => $submission_id
+    ]);
+
+    if ($ok) {
+        redirect_with_message('submissions.php', 'Submission has been edited.');
     } else {
-        echo "<script>alert('Error updating submission.'); window.location='update_submission.php?id=$submission_id';</script>";
+        redirect_with_message('update_submission.php?id=' . $submission_id, 'Error updating submission.');
     }
-    exit;
 }
 
 /* DELETE */
-if (isset($_GET['delete_id'])) {
-    $delete_id = (int)$_GET['delete_id'];
+if (isset($_POST['delete_submission'])) {
+    $delete_id = (int)($_POST['delete_id'] ?? 0);
 
-    $deleteReviews = $pdo->prepare("DELETE FROM Review WHERE submission_id = :id");
-    $deleteReviews->bindParam(':id', $delete_id, PDO::PARAM_INT);
-    $deleteReviews->execute();
-
-    $deleteSubmission = $pdo->prepare("DELETE FROM Submissions WHERE id = :id");
-    $deleteSubmission->bindParam(':id', $delete_id, PDO::PARAM_INT);
-
-    if ($deleteSubmission->execute()) {
-        echo "<script>alert('Submission has been deleted.'); window.location='submissions.php';</script>";
-    } else {
-        echo "<script>alert('Error deleting submission.'); window.location='submissions.php';</script>";
+    if ($delete_id <= 0) {
+        redirect_with_message('submissions.php', 'Invalid delete request.');
     }
-    exit;
+
+    try {
+        $pdo->beginTransaction();
+
+        $deleteReviews = $pdo->prepare("DELETE FROM Review WHERE submission_id = :id");
+        $deleteReviews->execute([':id' => $delete_id]);
+
+        $deleteSubmission = $pdo->prepare("DELETE FROM Submissions WHERE id = :id");
+        $deleteSubmission->execute([':id' => $delete_id]);
+
+        $pdo->commit();
+        redirect_with_message('submissions.php', 'Submission has been deleted.');
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        redirect_with_message('submissions.php', 'Error deleting submission.');
+    }
 }
-?>
+
+redirect_with_message('submissions.php', 'Invalid request.');
