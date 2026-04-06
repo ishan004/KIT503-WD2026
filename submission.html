@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Submission List</title>
+        <link rel="stylesheet" href="styles.css">
+        <script
+            src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    </head>
+    <body>
+        <nav class="navbar">
+            <div class="container">
+                <a class="brand" href="index.html">Conference Management
+                    System</a>
+
+                <div class="nav-buttons">
+                    <a class="btn btn-outline nav-link"
+                        href="registration.html">Registration</a>
+                    <a class="btn btn-outline nav-link"
+                        href="submission.html">Submissions</a>
+                    <a class="btn btn-outline nav-link"
+                        href="details.html">Details</a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="wrapper">
+            <div class="filter-box">
+                <div>
+                    <label for="typeFilter">Filter by type</label><br>
+                    <select id="typeFilter">
+                        <option value="all">All</option>
+                        <option value="Paper">Paper</option>
+                        <option value="Working group">Working group</option>
+                        <option value="Poster">Poster</option>
+                        <option value="Doctoral consortium">Doctoral
+                            consortium</option>
+                        <option value="Tips, techniques & courseware">Tips,
+                            techniques & courseware</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="searchInput">Search</label><br>
+                    <input type="text" id="searchInput" placeholder="Search...">
+                </div>
+
+                <div class="filter-buttons">
+                    <button id="searchBtn" type="button">Search</button>
+                    <button id="clearBtn" type="button">Clear</button>
+                </div>
+            </div>
+
+            <div id="submissionList"></div>
+            <p id="noResults">No matching submissions found.</p>
+        </div>
+
+        <script src="script.js"></script>
+    </body>
+</html>

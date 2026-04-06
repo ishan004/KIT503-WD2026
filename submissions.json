@@ -1,0 +1,51 @@
+[
+  {
+    "id": 1,
+    "title": "Modern Web Security Patterns",
+    "author": "Jane Smith",
+    "email": "jane.smith@example.com",
+    "type": "Paper",
+    "abstract": "This paper reviews common web vulnerabilities and proposes secure-by-design patterns for modern web applications."
+  },
+  {
+    "id": 2,
+    "title": "Progressive Web Apps for Offline Learning",
+    "author": "Ali Khan",
+    "email": "ali.khan@example.com",
+    "type": "Working group",
+    "abstract": "We present a working group proposal to explore PWA features for offline-first education platforms."
+  },
+  {
+    "id": 3,
+    "title": "Optimising React Performance",
+    "author": "Mia Chen",
+    "email": "mia.chen@example.com",
+    "type": "Poster",
+    "abstract": "A poster summarising practical techniques to reduce re-renders and improve perceived performance in React apps."
+  },
+  {
+    "id": 4,
+    "title": "Human-centred AI Interfaces",
+    "author": "Sam Patel",
+    "email": "sam.patel@example.com",
+    "type": "Doctoral consortium",
+    "abstract": "Doctoral consortium submission focusing on evaluation methods for human-centred AI interface design."
+  },
+  {
+    "id": 5,
+    "title": "Teaching Git with Micro-projects",
+    "author": "Lily Nguyen",
+    "email": "lily.nguyen@example.com",
+    "type": "Tips, techniques & courseware",
+    "abstract": "Courseware tips for teaching Git using short micro-projects and peer feedback cycles."
+  },
+
+  {
+    "id": 6,
+    "title": "Introduction to Artificial Intelligence",
+    "author": "Ishan Bhusal",
+    "email": "ishanbhusal004@example.com",
+    "type": "Tips, techniques & courseware",
+    "abstract": "Courseware tips for teaching Git using short micro-projects and peer feedback cycles."
+  }
+]
