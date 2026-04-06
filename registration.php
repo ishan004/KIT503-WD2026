@@ -11,11 +11,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $psw = $_POST['psw'] ?? '';
     $confirm = $_POST['psw-confirm'] ?? '';
 
-    // Simple validation
+    // Backend validation (important to keep)
     if ($psw !== $confirm) {
         $error = "Passwords do not match.";
     } else {
-        // (Optional: you can insert into DB here later)
         $success = "Registration successful! You can now view submissions.";
     }
 }
@@ -36,16 +35,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <body>
 
 <nav class="navbar">
-        <div class="container">
-            <a class="brand" href="index.php">Conference Management System</a>
+    <div class="container">
+        <a class="brand" href="index.php">Conference Management System</a>
 
-            <div class="nav-buttons">
-                <a class="btn btn-outline nav-link" href="registration.php">Registration</a>
-                <a class="btn btn-outline nav-link" href="submissions.php">Submissions</a>
-                <a class="btn btn-outline nav-link" href="conference_details.php">Conference Details</a>
-            </div>
+        <div class="nav-buttons">
+            <a class="btn btn-outline nav-link active" href="registration.php">Registration</a>
+            <a class="btn btn-outline nav-link" href="submissions.php">Submissions</a>
+            <a class="btn btn-outline nav-link" href="conference_details.php">Conference Details</a>
         </div>
-    </nav>
+    </div>
+</nav>
 
 <div class="content-area">
     <div class="wrapper">
@@ -65,20 +64,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 </div>
             <?php endif; ?>
 
-            <form method="post">
+            <form method="post" id="registrationForm">
                 <div class="mb-3">
                     <label class="form-label">First name</label>
-                    <input type="text" class="form-control" name="fname" required>
+                    <input type="text" class="form-control" name="fname" id="fname" required>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Last name</label>
-                    <input type="text" class="form-control" name="lname" required>
+                    <input type="text" class="form-control" name="lname" id="lname" required>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Email address</label>
-                    <input type="email" class="form-control" name="email" required>
+                    <input type="email" class="form-control" name="email" id="email" required>
                 </div>
 
                 <div class="mb-3">
@@ -87,6 +86,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         type="password"
                         class="form-control"
                         name="psw"
+                        id="psw"
                         required
                         pattern="(?=.*\d).{7,12}"
                         title="Password must contain 7 - 12 characters with at least one number."
@@ -95,7 +95,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 <div class="mb-3">
                     <label class="form-label">Confirm password</label>
-                    <input type="password" class="form-control" name="psw-confirm" required>
+                    <input type="password" class="form-control" name="psw-confirm" id="pswConfirm" required>
                 </div>
 
                 <div class="mb-3">
@@ -130,5 +130,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 </div>
 
 <script src="script.js"></script>
+
+
+
 </body>
 </html>

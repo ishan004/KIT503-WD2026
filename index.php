@@ -68,9 +68,9 @@
                 </p>
 
                 <div class="hero-actions">
-                    <a href="registration.html" class="secondary-btn">Register</a>
+                    <a href="registration.php" class="secondary-btn">Register</a>
                     <a href="submissions.php" class="success-btn">View Submissions</a>
-                    <a href="create_submissions.php" class="primary-btn">Submit a New Paper</a>
+                <a class="btn btn-outline nav-link" href="conference_details.php">Conference Details</a>
                 </div>
             </div>
         </div>

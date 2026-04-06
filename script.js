@@ -32,4 +32,64 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     })
   }
+
+  // Registration form validation
+  const registrationForm = document.getElementById("registrationForm")
+
+  if (registrationForm) {
+    registrationForm.addEventListener("submit", function (event) {
+      const fname = document.getElementById("fname").value.trim()
+      const lname = document.getElementById("lname").value.trim()
+      const email = document.getElementById("email").value.trim()
+      const password = document.getElementById("psw").value
+      const confirmPassword = document.getElementById("pswConfirm").value
+      const researchSelected = document.querySelector(
+        'input[name="research"]:checked',
+      )
+      const terms = document.getElementById("terms")
+
+      if (!fname || !lname || !email || !password || !confirmPassword) {
+        alert("Please fill all fields.")
+        event.preventDefault()
+        return
+      }
+
+      const emailPattern = /^[^ ]+@[^ ]+\.[a-z]{2,}$/i
+      if (!emailPattern.test(email)) {
+        alert("Please enter a valid email address.")
+        event.preventDefault()
+        return
+      }
+
+      if (password !== confirmPassword) {
+        alert("Passwords do not match.")
+        event.preventDefault()
+        return
+      }
+
+      if (password.length < 7 || password.length > 12) {
+        alert("Password must be between 7 and 12 characters.")
+        event.preventDefault()
+        return
+      }
+
+      if (!/\d/.test(password)) {
+        alert("Password must contain at least one number.")
+        event.preventDefault()
+        return
+      }
+
+      if (!researchSelected) {
+        alert("Please select whether you are a research student.")
+        event.preventDefault()
+        return
+      }
+
+      if (!terms.checked) {
+        alert("You must agree to the terms and conditions.")
+        event.preventDefault()
+        return
+      }
+    })
+  }
 })
