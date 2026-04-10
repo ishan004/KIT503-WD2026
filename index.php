@@ -64,7 +64,7 @@
                 <p>
                     This system supports the Tutorial 4 conference workflow. You can register,
                     view all paper submissions, check detailed paper information, create a new paper,
-                    update submission details, and delete existing submissions.
+                    update submission details, and delete  submissions.
                 </p>
 
                 <div class="hero-actions">
