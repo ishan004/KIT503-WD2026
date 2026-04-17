@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once 'session_check.php';
+require_once 'db_conn.php';
 include('db_conn.php');
 
 $search = trim($_GET['search'] ?? '');
@@ -49,17 +50,7 @@ unset($_SESSION['flash_message']);
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <nav class="navbar">
-        <div class="container">
-            <a class="brand" href="index.php">Conference Management System</a>
-
-            <div class="nav-buttons">
-                <a class="btn btn-outline nav-link" href="registration.php">Registration</a>
-                <a class="btn btn-outline nav-link" href="submissions.php">Submissions</a>
-                <a class="btn btn-outline nav-link" href="conference_details.php">Conference Details</a>
-            </div>
-        </div>
-    </nav>
+  <?php require_once 'nav.php'; ?>
 
   <main class="content-area">
     <div class="wrapper">

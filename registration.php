@@ -1,7 +1,7 @@
 <?php
 session_start();
+require_once 'db_conn.php';
 
-$success = "";
 $error = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -10,128 +10,132 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $email = trim($_POST['email'] ?? '');
     $psw = $_POST['psw'] ?? '';
     $confirm = $_POST['psw-confirm'] ?? '';
+    $research = $_POST['research'] ?? '';
 
-    // Backend validation (important to keep)
-    if ($psw !== $confirm) {
+    if ($fname === '' || $lname === '' || $email === '' || $psw === '' || $confirm === '' || $research === '') {
+        $error = "Please fill in all fields.";
+    } elseif ($psw !== $confirm) {
         $error = "Passwords do not match.";
     } else {
-        $success = "Registration successful! You can now view submissions.";
+        $check = $pdo->prepare("SELECT id FROM Users WHERE Email = ?");
+        $check->execute([$email]);
+        $existing = $check->fetch();
+
+        if ($existing) {
+            $error = "Email already registered.";
+        } else {
+            $fullName = $fname . " " . $lname;
+            $hashedPassword = password_hash($psw, PASSWORD_DEFAULT);
+            $affiliation = ($research === "yes") ? "Research Student" : "Non-research Student";
+            $role = "Author";
+
+            $stmt = $pdo->prepare("
+                INSERT INTO Users (Name, Email, Password, affiliation, Role)
+                VALUES (?, ?, ?, ?, ?)
+            ");
+            $stmt->execute([$fullName, $email, $hashedPassword, $affiliation, $role]);
+
+            $_SESSION["user_id"] = $pdo->lastInsertId();
+            $_SESSION["user_name"] = $fullName;
+            $_SESSION["user_email"] = $email;
+            $_SESSION["last_activity"] = time();
+
+            header("Location: index.php");
+            exit();
+        }
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registration</title>
-
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-        rel="stylesheet">
-
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<nav class="navbar">
-    <div class="container">
-        <a class="brand" href="index.php">Conference Management System</a>
+<?php require_once 'nav.php'; ?>
 
-        <div class="nav-buttons">
-            <a class="btn btn-outline nav-link active" href="registration.php">Registration</a>
-            <a class="btn btn-outline nav-link" href="submissions.php">Submissions</a>
-            <a class="btn btn-outline nav-link" href="conference_details.php">Conference Details</a>
-        </div>
-    </div>
-</nav>
-
-<div class="content-area">
+<main class="content-area">
     <div class="wrapper">
-        <div class="form-box-register">
+        <div class="details-box" style="max-width: 700px;">
+            <h2>Conference Registration</h2>
 
-            <h2 class="text-center mb-4">Register</h2>
-
-            <?php if ($error): ?>
-                <div class="alert alert-danger">
+            <?php if (!empty($error)): ?>
+                <div class="alert-box alert-error">
                     <?php echo htmlspecialchars($error); ?>
                 </div>
             <?php endif; ?>
 
-            <?php if ($success): ?>
-                <div class="alert alert-success">
-                    <?php echo htmlspecialchars($success); ?>
-                </div>
-            <?php endif; ?>
-
             <form method="post" id="registrationForm">
-                <div class="mb-3">
-                    <label class="form-label">First name</label>
-                    <input type="text" class="form-control" name="fname" id="fname" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="fname">First Name</label>
+                        <input type="text" id="fname" name="fname" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="lname">Last Name</label>
+                        <input type="text" id="lname" name="lname" required>
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Last name</label>
-                    <input type="text" class="form-control" name="lname" id="lname" required>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Email address</label>
-                    <input type="email" class="form-control" name="email" id="email" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="psw">Password</label>
+                        <input type="password" id="psw" name="psw" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pswConfirm">Confirm Password</label>
+                        <input type="password" id="pswConfirm" name="psw-confirm" required>
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Password</label>
-                    <input
-                        type="password"
-                        class="form-control"
-                        name="psw"
-                        id="psw"
-                        required
-                        pattern="(?=.*\d).{7,12}"
-                        title="Password must contain 7 - 12 characters with at least one number."
-                    >
+                <div class="form-group">
+                    <label>Research Student?</label>
+                    <div class="inline-options">
+                        <label for="research_yes">
+                            <input type="radio" id="research_yes" name="research" value="yes" required>
+                            Yes
+                        </label>
+
+                        <label for="research_no">
+                            <input type="radio" id="research_no" name="research" value="no">
+                            No
+                        </label>
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Confirm password</label>
-                    <input type="password" class="form-control" name="psw-confirm" id="pswConfirm" required>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label d-block">Research student?</label>
-                    <input type="radio" name="research" value="yes" required> Yes
-                    <input type="radio" name="research" value="no"> No
-                </div>
-
-                <div class="mb-4 form-check">
-                    <input type="checkbox" class="form-check-input" id="terms" required>
-                    <label class="form-check-label" for="terms">
-                        I agree to terms and conditions
+                <div class="form-group checkbox-row">
+                    <label for="terms">
+                        <input type="checkbox" id="terms" required>
+                        I agree to the terms and conditions
                     </label>
                 </div>
 
-                <div class="d-flex gap-2">
-                    <a href="index.php" class="btn btn-danger w-50">Cancel</a>
-                    <button type="submit" class="btn btn-success w-50">Submit</button>
+                <div class="form-actions">
+                    <button type="submit" class="success-btn">Submit Registration</button>
+                    <a href="index.php" class="secondary-btn">Cancel</a>
                 </div>
             </form>
-
-            <?php if ($success): ?>
-                <div class="text-center mt-4">
-                    <a href="submissions.php" class="btn btn-primary">
-                        Go to Submissions
-                    </a>
-                </div>
-            <?php endif; ?>
-
         </div>
     </div>
-</div>
+</main>
+
+<footer>
+    <div class="container footer-row">
+        <p>&copy; 2026 Conference Management System</p>
+    </div>
+</footer>
 
 <script src="script.js"></script>
-
-
-
 </body>
 </html>
